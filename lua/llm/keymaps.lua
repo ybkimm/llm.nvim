@@ -5,16 +5,16 @@ local M = {
   setup_done = false,
 }
 
-local function accept_suggestion()
+local function accept_suggestion(accept_keymap)
   if not completion.suggestion then
-    return
+    return vim.api.nvim_replace_termcodes(accept_keymap, true, true, true)
   end
   vim.schedule(completion.complete)
 end
 
-local function dismiss_suggestion()
+local function dismiss_suggestion(dismiss_keymap)
   if not completion.suggestion then
-    return
+    return vim.api.nvim_replace_termcodes(dismiss_keymap, true, true, true)
   end
   vim.schedule(function()
     completion.cancel()
@@ -30,13 +30,18 @@ function M.setup()
   local accept_keymap = config.get().accept_keymap
   local dismiss_keymap = config.get().dismiss_keymap
 
-  vim.keymap.set("i", accept_keymap, accept_suggestion, { expr = true })
+  local function invoke_accept()
+    return accept_suggestion(accept_keymap)
+  end
 
-  vim.keymap.set("n", accept_keymap, accept_suggestion, { expr = true })
+  local function invoke_dismiss()
+    return dismiss_suggestion(dismiss_keymap)
+  end
 
-  vim.keymap.set("i", dismiss_keymap, dismiss_suggestion, { expr = true })
-
-  vim.keymap.set("n", dismiss_keymap, dismiss_suggestion, { expr = true })
+  vim.keymap.set("i", accept_keymap,  invoke_accept,  { expr = true })
+  vim.keymap.set("n", accept_keymap,  invoke_accept,  { expr = true })
+  vim.keymap.set("i", dismiss_keymap, invoke_dismiss, { expr = true })
+  vim.keymap.set("n", dismiss_keymap, invoke_dismiss, { expr = true })
 
   M.setup_done = true
 end
